@@ -57,7 +57,7 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "localhost:8081/customer/getCustomerOrders?page=1&pageSize=10",
+							"raw": "localhost:8081/customer/getCustomerOrders?page=0&pageSize=10",
 							"host": [
 								"localhost"
 							],
@@ -69,7 +69,7 @@
 							"query": [
 								{
 									"key": "page",
-									"value": "1"
+									"value": "0"
 								},
 								{
 									"key": "pageSize",
@@ -140,7 +140,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n    \"code\": \"KTP-1\",\r\n    \"price\": 30.0\r\n}",
+							"raw": "{\r\n    \"code\": \"KTP-1\",\r\n    \"price\": 50.0\r\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -273,7 +273,7 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "localhost:8081/order/getByOrderNumber?orderNumber=95419388",
+							"raw": "localhost:8081/order/getByOrderNumber?orderNumber=22805773",
 							"host": [
 								"localhost"
 							],
@@ -285,7 +285,7 @@
 							"query": [
 								{
 									"key": "orderNumber",
-									"value": "95419388"
+									"value": "22805773"
 								}
 							]
 						}
@@ -361,7 +361,7 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "localhost:8081/statistics/getMonthlyReport",
+							"raw": "localhost:8081/statistics/getMonthlyReport?email=customer@getir.com",
 							"host": [
 								"localhost"
 							],
@@ -369,6 +369,12 @@
 							"path": [
 								"statistics",
 								"getMonthlyReport"
+							],
+							"query": [
+								{
+									"key": "email",
+									"value": "customer@getir.com"
+								}
 							]
 						}
 					},

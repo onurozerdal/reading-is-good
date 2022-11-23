@@ -10,11 +10,14 @@ import com.getir.reading.model.request.OrderListRequest;
 import com.getir.reading.model.request.OrderRequest;
 import com.getir.reading.model.response.OrderLines;
 import com.getir.reading.model.response.OrderResponse;
-import com.getir.reading.repository.OrderCustomRepository;
+import com.getir.reading.repository.OrderLineRepository;
+import com.getir.reading.repository.OrderRepository;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -22,6 +25,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -30,13 +34,15 @@ import java.util.stream.Collectors;
 public class OrderService {
 
     private final Logger logger = LoggerFactory.getLogger(OrderService.class);
-    private final OrderCustomRepository orderCustomRepository;
+    private final OrderRepository orderRepository;
+    private final OrderLineRepository orderLineRepository;
 
     private final BookService bookService;
 
     @Autowired
-    public OrderService(OrderCustomRepository orderCustomRepository, BookService bookService) {
-        this.orderCustomRepository = orderCustomRepository;
+    public OrderService(OrderRepository orderRepository, OrderLineRepository orderLineRepository, BookService bookService) {
+        this.orderRepository = orderRepository;
+        this.orderLineRepository = orderLineRepository;
         this.bookService = bookService;
     }
 
@@ -54,10 +60,11 @@ public class OrderService {
         logger.info("createOrder is called. calledBy: {}", email);
         orders.setEmail(email);
 
-        Orders savedOrders = orderCustomRepository.saveOrUpdate(orders);
+        Orders savedOrders = orderRepository.save(orders);
         List<OrderLines> orderLines = createOrderLine(savedOrders, orderLineRequest);
         double totalAmount = orderLines.stream().mapToDouble(OrderLines::getAmount).sum();
-        orderCustomRepository.updateTotalAmount(orderNumber, totalAmount);
+        savedOrders.setTotalAmount(totalAmount);
+        orderRepository.save(savedOrders);
 
         OrderResponse response = new OrderResponse();
         response.setOrderNumber(orderNumber);
@@ -91,7 +98,7 @@ public class OrderService {
             orderLine.setQuantity(quantity);
             orderLine.setAmount(amount);
             orderLine.setEmail(orders.getEmail());
-            orderCustomRepository.saveOrUpdate(orderLine);
+            orderLineRepository.save(orderLine);
 
             bookService.updateStock(code, quantity);
 
@@ -106,7 +113,7 @@ public class OrderService {
             ExceptionFactory.throwBadRequestException("Order Number should not be blank.");
         }
 
-        List<OrderLine> orderLines = orderCustomRepository.getOrderLines(orderNumber);
+        List<OrderLine> orderLines = orderLineRepository.getOrderLineByOrderNumber(orderNumber);
         Map<Orders, List<OrderLine>> orders = orderLines.stream().collect(Collectors.groupingBy(OrderLine::getOrders));
         List<OrderResponse> orderResponses = orders.keySet().stream().map(item -> new OrderResponse(item.getOrderNumber(), item.getTotalAmount(), orders.get(item).stream().map(orderLine -> new OrderLines(orderLine.getCode(), orderLine.getQuantity(), orderLine.getAmount())).toList())).toList();
 
@@ -120,27 +127,29 @@ public class OrderService {
         if (request == null) {
             ExceptionFactory.throwBadRequestException("Start Date and End Date should not be blank.");
         }
-        String startDate = request.getStartDate();
-        if (StringUtils.isEmpty(startDate)) {
+        String startDateStr = request.getStartDate();
+        if (StringUtils.isEmpty(startDateStr)) {
             ExceptionFactory.throwBadRequestException("Start Date should not be blank.");
         }
-        String endDate = request.getEndDate();
-        if (StringUtils.isEmpty(endDate)) {
+        String endDateStr = request.getEndDate();
+        if (StringUtils.isEmpty(endDateStr)) {
             ExceptionFactory.throwBadRequestException("End Date should not be blank.");
         }
-        logger.info("list is called. startDate: {}, endDate: {}", request.getStartDate(), request.getEndDate());
-        SimpleDateFormat formatter = new SimpleDateFormat("dd-MM-yyyy");
+        logger.info("list is called. startDateStr: {}, endDateStr: {}", request.getStartDate(), request.getEndDate());
+        SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
+        Date startDate = null;
+        Date endDate = null;
         try {
-            formatter.parse(startDate);
+            startDate = formatter.parse(startDateStr);
         } catch (ParseException e) {
             ExceptionFactory.throwBadRequestException("Start Date format is not valid.");
         }
         try {
-            formatter.parse(endDate);
+            endDate = formatter.parse(endDateStr);
         } catch (ParseException e) {
             ExceptionFactory.throwBadRequestException("End Date format is not valid.");
         }
-        List<OrderLine> orderLines = orderCustomRepository.list(startDate, endDate);
+        List<OrderLine> orderLines = orderLineRepository.getOrderLineByCreatedDateBetween(startDate, endDate);
         return getOrderResponse(orderLines);
     }
 
@@ -149,14 +158,14 @@ public class OrderService {
         if (StringUtils.isEmpty(email)) {
             ExceptionFactory.throwBadRequestException("Email should not be blank.");
         }
-        if (page == null || page < 1) {
+        if (page == null || page < 0) {
             ExceptionFactory.throwBadRequestException("Page is not valid.");
         }
         if (pageSize == null || pageSize < 1) {
-            ExceptionFactory.throwBadRequestException("Page is not valid.");
+            ExceptionFactory.throwBadRequestException("Page Size is not valid.");
         }
-        List<OrderLine> orderLines = orderCustomRepository.getOrderLines(email, page, pageSize);
-        return getOrderResponse(orderLines);
+        Page<OrderLine> orderLines = orderLineRepository.getOrderLineByEmail(email, PageRequest.of(page, pageSize));
+        return getOrderResponse(orderLines.get().toList());
     }
 
     private List<OrderResponse> getOrderResponse(List<OrderLine> orderLines) {

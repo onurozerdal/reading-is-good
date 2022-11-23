@@ -65,10 +65,10 @@ public class CustomerService {
     }
 
     public ListCustomerOrderResponse getCustomerOrders(Integer page, Integer pageSize) {
-        if (page == null || page < 1)
+        if (page == null || page < 0)
             ExceptionFactory.throwBadRequestException("Page is not valid.");
         if (pageSize == null || pageSize < 1)
-            ExceptionFactory.throwBadRequestException("Page is not valid.");
+            ExceptionFactory.throwBadRequestException("Page Size is not valid.");
         String email = SecurityContextHolder.getContext().getAuthentication().getName();
         logger.info("getCustomerOrders is called. called by: {}", email);
         List<OrderResponse> customerOrders = orderService.getCustomerOrders(email, page, pageSize);

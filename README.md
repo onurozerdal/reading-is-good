@@ -24,22 +24,33 @@ System developed with Spring Security. There is two user type as admin and custo
 Admin can save a book, add book to stock, list orders and monitor monthly statistics. But cannot create order.
 Customer can create order and get their own orders detail.
 
-|                               | Admin | Customer |  All |
-|-------------------------------|:-----:|---------:|-----:|
-| /user/createAdmin             |   ✔  |       ✔ |    ✔ |
-| /customer/createCustomer      |   ✔  |        ✔|    ✔ |
-| /customer/getCustomerOrders   |   ❌  |        ✔|    ❌ |
-| /book/saveBook                |   ✔  |        ❌|    ❌ |
-| /book/addBookToStock          |   ✔  |        ❌|    ❌ |
-| /order/createOrder            |   ❌  |        ✔|    ❌ |
-| /order/list                   |   ✔  |        ❌|    ❌ |
-| /customer/getCustomerOrders   |   ✔  |        ❌|    ❌ |
-| /statistics/getMonthlyReport  |   ✔  |        ❌|    ❌ |
+|                              | Admin | Customer |  All |
+|------------------------------|:-----:|---------:|-----:|
+| /user/createAdmin            |   ✔  |       ✔ |    ✔ |
+| /customer/createCustomer     |   ✔  |        ✔|    ✔ |
+| /customer/getCustomerOrders  |   ❌  |        ✔|    ❌ |
+| /book/saveBook               |   ✔  |        ❌|    ❌ |
+| /book/addBookToStock         |   ✔  |        ❌|    ❌ |
+| /order/createOrder           |   ❌  |        ✔|    ❌ |
+| /order/list                  |   ✔  |        ❌|    ❌ |
+| /order/getByOrderNumber      |   ✔  |        ❌|    ❌ |
+| /statistics/getMonthlyReport |   ✔  |        ❌|    ❌ |
 
 You can see request and response sample in swagger definition (http://localhost:8081/swagger-ui/index.html#/).
 Also postman collection is added to repository.
 
 **_NOTE:_**  Postman collection is created with basic token auth parameters. If you create admin and create customer with given credentials, you don't need to change other requests basic token parameters. If you want to create admin and customer different credentials, you have to add the credentials to basic token.
+
+**_HINT:_**  You can test easily if you follow this steps;
+- /user/createAdmin
+- /customer/createCustomer
+- /book/saveBook
+- /book/addBookToStock
+- /order/createOrder
+- /order/getByOrderNumber
+- /order/list
+- /customer/getCustomerOrders
+- /statistics/getMonthlyReport
 
 ### User
 #### 1. createAdmin
@@ -92,7 +103,7 @@ Response:
 #### 2. getCustomerOrders
 Request:
   ````http request
-  GET localhost:8081/customer/getCustomerOrders?page=1&pageSize=10
+  GET localhost:8081/customer/getCustomerOrders?page=0&pageSize=10
   ````
 Auth:
 ```` json
@@ -389,7 +400,7 @@ Response:
 #### 1. getMonthlyReport
 Request:
   ````http request
-  GET localhost:8081/statistics/getMonthlyReport
+  GET localhost:8081/statistics/getMonthlyReport?email=customer@getir.com
   ````
 Auth:
 ```` json

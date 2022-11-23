@@ -6,9 +6,7 @@ import com.getir.reading.model.request.AddBookToStockRequest;
 import com.getir.reading.model.request.SaveBookRequest;
 import com.getir.reading.model.response.AddBookToStockResponse;
 import com.getir.reading.model.response.SaveBookResponse;
-import com.getir.reading.repository.BookCustomRepository;
 import com.getir.reading.repository.BookRepository;
-import com.getir.reading.repository.StockCustomRepository;
 import com.getir.reading.repository.StockRepository;
 import org.junit.Assert;
 import org.junit.Rule;
@@ -30,13 +28,7 @@ public class BookServiceTest {
     private BookRepository bookRepository;
 
     @Mock
-    private BookCustomRepository bookCustomRepository;
-
-    @Mock
     private StockRepository stockRepository;
-
-    @Mock
-    private StockCustomRepository stockCustomRepository;
 
     @InjectMocks
     private BookService bookService;
@@ -105,7 +97,7 @@ public class BookServiceTest {
         SaveBookResponse response = createSaveBookResponse();
 
         doReturn(null).when(bookRepository).findByCode(anyString());
-        doReturn(response).when(bookCustomRepository).saveOrUpdate(any());
+        doReturn(new Book()).when(bookRepository).save(any());
         SaveBookResponse result = bookService.saveBook(request);
         Assert.assertEquals(response.getCode(), result.getCode());
         Assert.assertEquals(response.getPrice(), result.getPrice());
@@ -145,7 +137,7 @@ public class BookServiceTest {
 
         doReturn(new Book()).when(bookRepository).findByCode(anyString());
         doReturn(null).when(stockRepository).findByCode(anyString());
-        doReturn(new Stock()).when(stockCustomRepository).saveOrUpdate(any());
+        doReturn(new Stock()).when(stockRepository).save(any());
         AddBookToStockResponse result = bookService.addBookToStock(request);
         Assert.assertEquals(response.getCode(), result.getCode());
         Assert.assertEquals(response.getQuantity(), result.getQuantity());
@@ -162,7 +154,7 @@ public class BookServiceTest {
 
         doReturn(new Book()).when(bookRepository).findByCode(anyString());
         doReturn(stock).when(stockRepository).findByCode(anyString());
-        doReturn(resultStock).when(stockCustomRepository).saveOrUpdate(any());
+        doReturn(resultStock).when(stockRepository).save(any());
         AddBookToStockResponse result = bookService.addBookToStock(request);
         Assert.assertEquals(response.getCode(), result.getCode());
         Assert.assertEquals(resultInStock, result.getQuantity());

@@ -7,7 +7,8 @@ import com.getir.reading.model.request.OrderLineRequest;
 import com.getir.reading.model.request.OrderListRequest;
 import com.getir.reading.model.request.OrderRequest;
 import com.getir.reading.model.response.OrderResponse;
-import com.getir.reading.repository.OrderCustomRepository;
+import com.getir.reading.repository.OrderLineRepository;
+import com.getir.reading.repository.OrderRepository;
 import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
@@ -17,6 +18,8 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnitRunner;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -35,7 +38,10 @@ import static org.mockito.Mockito.doReturn;
 public class OrderServiceTest {
 
     @Mock
-    private OrderCustomRepository orderCustomRepository;
+    private OrderLineRepository orderLineRepository;
+
+    @Mock
+    private OrderRepository orderRepository;
     @Mock
     private BookService bookService;
     @InjectMocks
@@ -95,7 +101,7 @@ public class OrderServiceTest {
         Orders orders = new Orders();
         orders.setEmail("email@email.com");
         expectedException.expect(Exception.class);
-        doReturn(orders).when(orderCustomRepository).saveOrUpdate(any());
+        doReturn(orders).when(orderRepository).save(any());
         orderService.createOrder(request);
     }
 
@@ -119,7 +125,7 @@ public class OrderServiceTest {
         Orders orders = new Orders();
         orders.setEmail("email@email.com");
         expectedException.expect(Exception.class);
-        doReturn(orders).when(orderCustomRepository).saveOrUpdate(any());
+        doReturn(orders).when(orderRepository).save(any());
         orderService.createOrder(request);
     }
 
@@ -143,7 +149,7 @@ public class OrderServiceTest {
         Orders orders = new Orders();
         orders.setEmail("email@email.com");
         expectedException.expect(Exception.class);
-        doReturn(orders).when(orderCustomRepository).saveOrUpdate(any());
+        doReturn(orders).when(orderRepository).save(any());
         doReturn(null).when(bookService).getBook(anyString());
         orderService.createOrder(request);
     }
@@ -178,9 +184,9 @@ public class OrderServiceTest {
         OrderResponse response = new OrderResponse();
         response.setTotalAmount(totalAmount);
 
-        doReturn(orders, new OrderLine()).when(orderCustomRepository).saveOrUpdate(any());
+        doReturn(orders).when(orderRepository).save(any());
+        doReturn(new OrderLine()).when(orderLineRepository).save(any());
         doReturn(book).when(bookService).getBook(anyString());
-        doNothing().when(orderCustomRepository).updateTotalAmount(anyLong(), anyDouble());
         OrderResponse result = orderService.createOrder(request);
         Assert.assertEquals(response.getTotalAmount(), result.getTotalAmount());
     }
@@ -194,7 +200,7 @@ public class OrderServiceTest {
     @Test
     public void getByOrderNumber_shouldBeError_NoOrder() {
         expectedException.expect(Exception.class);
-        doReturn(new ArrayList<>()).when(orderCustomRepository).getOrderLines(anyLong());
+        doReturn(new ArrayList<>()).when(orderLineRepository).getOrderLineByOrderNumber(anyLong());
         orderService.getByOrderNumber(1L);
     }
 
@@ -212,7 +218,7 @@ public class OrderServiceTest {
         List<OrderLine> orderLines = new ArrayList<>();
         orderLines.add(orderLine);
 
-        doReturn(orderLines).when(orderCustomRepository).getOrderLines(anyLong());
+        doReturn(orderLines).when(orderLineRepository).getOrderLineByOrderNumber(anyLong());
         OrderResponse result = orderService.getByOrderNumber(1L);
         Assert.assertNotNull(result);
     }
@@ -257,7 +263,21 @@ public class OrderServiceTest {
 
     @Test
     public void list_shouldBeSuccess() {
+        String email = "email@email.com";
+
+        Orders orders = new Orders();
+        orders.setOrderNumber(1L);
+        orders.setEmail(email);
+
+        OrderLine orderLine = new OrderLine();
+        orderLine.setOrderNumber(orders.getOrderNumber());
+        orderLine.setOrders(orders);
+        orderLine.setAmount(10.0);
+
+        List<OrderLine> orderLines = List.of(orderLine);
+
         OrderListRequest orderListRequest = createOrderListRequest();
+        doReturn(orderLines).when(orderLineRepository).getOrderLineByCreatedDateBetween(any(), any());
         List<OrderResponse> result = orderService.list(orderListRequest);
         Assert.assertNotNull(result);
     }
@@ -282,7 +302,27 @@ public class OrderServiceTest {
 
     @Test
     public void getCustomerOrders_shouldBeSuccess() {
-        List<OrderResponse> result = orderService.getCustomerOrders("email@email.com", 1, 10);
+        String email = "email@email.com";
+
+        Orders orders = new Orders();
+        orders.setOrderNumber(1L);
+        orders.setEmail(email);
+
+        OrderLine orderLine = new OrderLine();
+        orderLine.setOrderNumber(orders.getOrderNumber());
+        orderLine.setOrders(orders);
+        orderLine.setAmount(10.0);
+
+        int page = 1;
+        int pageSize = 10;
+        List<OrderLine> orderLines = List.of(orderLine);
+        PageImpl<OrderLine> orderEntitiesPage =
+                new PageImpl<>(orderLines,
+                        PageRequest.of(page, pageSize),
+                        orderLines.size());
+
+        doReturn(orderEntitiesPage).when(orderLineRepository).getOrderLineByEmail(anyString(), any());
+        List<OrderResponse> result = orderService.getCustomerOrders("email@email.com", page, pageSize);
         Assert.assertNotNull(result);
     }
 }

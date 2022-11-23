@@ -7,9 +7,7 @@ import com.getir.reading.model.request.AddBookToStockRequest;
 import com.getir.reading.model.request.SaveBookRequest;
 import com.getir.reading.model.response.AddBookToStockResponse;
 import com.getir.reading.model.response.SaveBookResponse;
-import com.getir.reading.repository.BookCustomRepository;
 import com.getir.reading.repository.BookRepository;
-import com.getir.reading.repository.StockCustomRepository;
 import com.getir.reading.repository.StockRepository;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -24,21 +22,14 @@ public class BookService {
     private final Logger logger = LoggerFactory.getLogger(BookService.class);
 
     private final BookRepository bookRepository;
-    private final BookCustomRepository bookCustomRepository;
 
     private final StockRepository stockRepository;
 
-    private final StockCustomRepository stockCustomRepository;
-
     @Autowired
     public BookService(BookRepository bookRepository,
-                       BookCustomRepository bookCustomRepository,
-                       StockRepository stockRepository,
-                       StockCustomRepository stockCustomRepository) {
+                       StockRepository stockRepository) {
         this.bookRepository = bookRepository;
-        this.bookCustomRepository = bookCustomRepository;
         this.stockRepository = stockRepository;
-        this.stockCustomRepository = stockCustomRepository;
     }
 
     @Transactional
@@ -62,7 +53,7 @@ public class BookService {
         Book book = new Book();
         book.setCode(code);
         book.setPrice(price);
-        bookCustomRepository.saveOrUpdate(book);
+        bookRepository.save(book);
         return new SaveBookResponse(code, price);
     }
 
@@ -86,12 +77,12 @@ public class BookService {
 
         Stock stock = stockRepository.findByCode(code);
         if (stock == null) {
-            stockCustomRepository.saveOrUpdate(new Stock(code, quantity));
+            stockRepository.save(new Stock(code, quantity));
             return new AddBookToStockResponse(code, quantity);
         }
 
         stock.setQuantity(stock.getQuantity() + quantity);
-        stockCustomRepository.saveOrUpdate(stock);
+        stockRepository.save(stock);
 
         return new AddBookToStockResponse(code, stock.getQuantity());
     }
@@ -117,7 +108,7 @@ public class BookService {
         }
 
         stock.setQuantity(stock.getQuantity() - quantity);
-        stockCustomRepository.saveOrUpdate(stock);
+        stockRepository.save(stock);
     }
 
     public Book getBook(String code) {

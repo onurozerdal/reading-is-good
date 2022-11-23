@@ -6,7 +6,8 @@ import com.getir.reading.model.OrderLine;
 import com.getir.reading.model.Orders;
 import com.getir.reading.model.request.AddBookToStockRequest;
 import com.getir.reading.model.response.SaveBookResponse;
-import com.getir.reading.repository.OrderCustomRepository;
+import com.getir.reading.repository.OrderLineRepository;
+import com.getir.reading.repository.OrderRepository;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -24,13 +25,16 @@ public class StatisticsServiceIT extends BaseIntegrationTest {
     private BookService bookService;
 
     @Autowired
-    private OrderCustomRepository orderCustomRepository;
+    private OrderRepository orderRepository;
+
+    @Autowired
+    private OrderLineRepository orderLineRepository;
 
     @Test
     public void getMonthlyReport() {
         createOrder();
 
-        List<Map<String, Object>> result = statisticsService.getMonthlyReport();
+        List<Map<String, Object>> result = statisticsService.getMonthlyReport("email@email.com");
         assertNotNull(result);
     }
 
@@ -46,7 +50,7 @@ public class StatisticsServiceIT extends BaseIntegrationTest {
         Orders orders = new Orders();
         orders.setEmail(email);
         orders.setOrderNumber(1L);
-        orders = orderCustomRepository.saveOrUpdate(orders);
+        orders = orderRepository.save(orders);
 
         OrderLine orderLine = new OrderLine();
         orderLine.setOrders(orders);
@@ -55,6 +59,6 @@ public class StatisticsServiceIT extends BaseIntegrationTest {
         orderLine.setQuantity(1);
         orderLine.setAmount(orderLine.getQuantity() * bookResult.getPrice());
         orderLine.setEmail(email);
-        orderCustomRepository.saveOrUpdate(orderLine);
+        orderLineRepository.save(orderLine);
     }
 }

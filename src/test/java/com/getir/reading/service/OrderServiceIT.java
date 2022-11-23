@@ -8,7 +8,8 @@ import com.getir.reading.model.request.AddBookToStockRequest;
 import com.getir.reading.model.request.OrderListRequest;
 import com.getir.reading.model.response.OrderResponse;
 import com.getir.reading.model.response.SaveBookResponse;
-import com.getir.reading.repository.OrderCustomRepository;
+import com.getir.reading.repository.OrderLineRepository;
+import com.getir.reading.repository.OrderRepository;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -30,7 +31,10 @@ public class OrderServiceIT extends BaseIntegrationTest {
     private BookService bookService;
 
     @Autowired
-    private OrderCustomRepository orderCustomRepository;
+    private OrderRepository orderRepository;
+
+    @Autowired
+    private OrderLineRepository orderLineRepository;
 
     private Orders createOrder() {
         SaveBookResponse bookResult = bookService.saveBook(CommonModels.createSaveBookRequest());
@@ -44,7 +48,7 @@ public class OrderServiceIT extends BaseIntegrationTest {
         Orders orders = new Orders();
         orders.setEmail(email);
         orders.setOrderNumber(1L);
-        orders = orderCustomRepository.saveOrUpdate(orders);
+        orders = orderRepository.save(orders);
 
         OrderLine orderLine = new OrderLine();
         orderLine.setOrders(orders);
@@ -53,7 +57,7 @@ public class OrderServiceIT extends BaseIntegrationTest {
         orderLine.setQuantity(1);
         orderLine.setAmount(orderLine.getQuantity() * bookResult.getPrice());
         orderLine.setEmail(email);
-        orderCustomRepository.saveOrUpdate(orderLine);
+        orderLineRepository.save(orderLine);
 
         return orders;
     }

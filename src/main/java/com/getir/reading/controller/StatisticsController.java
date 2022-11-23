@@ -20,7 +20,7 @@ public class StatisticsController {
     }
 
     @GetMapping("/getMonthlyReport")
-    public ApiResponse<List<Map<String, Object>>> getMonthlyReport() {
-        return ApiResponse.response(statisticsService.getMonthlyReport());
+    public ApiResponse<List<Map<String, Object>>> getMonthlyReport(String email) {
+        return ApiResponse.response(statisticsService.getMonthlyReport(email));
     }
 }

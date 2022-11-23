@@ -5,7 +5,6 @@ import com.getir.reading.exception.ExceptionFactory;
 import com.getir.reading.model.User;
 import com.getir.reading.model.request.CreateUserRequest;
 import com.getir.reading.model.response.CreateUserResponse;
-import com.getir.reading.repository.UserCustomRepository;
 import com.getir.reading.repository.UserRepository;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -21,14 +20,11 @@ public class UserService {
     private final Logger logger = LoggerFactory.getLogger(UserService.class);
     private final UserRepository userRepository;
 
-    private final UserCustomRepository userCustomRepository;
-
     private final PasswordEncoder passwordEncoder;
 
     @Autowired
-    public UserService(UserRepository userRepository, UserCustomRepository userCustomRepository, PasswordEncoder passwordEncoder) {
+    public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
-        this.userCustomRepository = userCustomRepository;
         this.passwordEncoder = passwordEncoder;
     }
 
@@ -53,7 +49,7 @@ public class UserService {
         user.setUsername(email);
         user.setPassword(passwordEncoder.encode(password));
         user.setRole(role);
-        userCustomRepository.saveOrUpdate(user);
+        userRepository.save(user);
         return new CreateUserResponse(email, role.toString());
     }
 }

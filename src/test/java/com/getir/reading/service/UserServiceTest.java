@@ -4,7 +4,6 @@ import com.getir.reading.enums.Role;
 import com.getir.reading.model.User;
 import com.getir.reading.model.request.CreateUserRequest;
 import com.getir.reading.model.response.CreateUserResponse;
-import com.getir.reading.repository.UserCustomRepository;
 import com.getir.reading.repository.UserRepository;
 import org.junit.Assert;
 import org.junit.Rule;
@@ -25,9 +24,6 @@ public class UserServiceTest {
 
     @Mock
     private UserRepository userRepository;
-
-    @Mock
-    private UserCustomRepository userCustomRepository;
 
     @Mock
     private PasswordEncoder passwordEncoder;
@@ -86,7 +82,7 @@ public class UserServiceTest {
 
         doReturn(null).when(userRepository).findByUsername(anyString());
         doReturn("encoded").when(passwordEncoder).encode(anyString());
-        doReturn(new User()).when(userCustomRepository).saveOrUpdate(any());
+        doReturn(new User()).when(userRepository).save(any());
         CreateUserResponse result = userService.createUser(request, Role.ROLE_ADMIN);
         Assert.assertEquals(response.getEmail(), result.getEmail());
         Assert.assertEquals(response.getRole(), result.getRole());
