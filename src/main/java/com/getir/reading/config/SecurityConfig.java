@@ -23,6 +23,17 @@ import java.util.List;
 @EnableWebSecurity
 public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
+    private static final String[] SWAGGER_WHITELIST = {
+            "/v2/api-docs",
+            "/swagger-resources",
+            "/swagger-resources/**",
+            "/configuration/ui",
+            "/configuration/security",
+            "/swagger-ui.html",
+            "/webjars/**",
+            "/v3/api-docs/**",
+            "/swagger-ui/**"
+    };
     @Autowired
     private DataSource dataSource;
 
@@ -38,6 +49,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         http.csrf().disable();
         http.cors().configurationSource(corsConfigurationSource());
         http.authorizeRequests()
+                .antMatchers(SWAGGER_WHITELIST).permitAll()
                 .antMatchers("/user/createAdmin").permitAll()
                 .antMatchers("/customer/createCustomer").permitAll()
                 .antMatchers("/customer/getCustomerOrders").hasRole("USER")
@@ -68,7 +80,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         allowedOrigins.add("https://127.0.0.1:8081");
 
         configuration.setAllowedOrigins(allowedOrigins);
-        configuration.setAllowedMethods(Arrays.asList("HEAD", "GET", "POST", "PUT", "DELETE"));
+        configuration.setAllowedMethods(Arrays.asList("HEAD", "GET", "POST"));
         configuration.setAllowCredentials(true);
         configuration.setAllowedHeaders(Arrays.asList("Authorization", "Cache-Control", "Content-Type"));
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
