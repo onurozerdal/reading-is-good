@@ -428,7 +428,7 @@ Response:
 ## Unit And Integration Tests
 You could check test directories. Test Coverage is below. Also integration tests were written.
 
-![alt text](https://https://github.com/onurozerdal/reading-is-good/blob/master/testCoverage.JPG)
+![alt text](https://github.com/onurozerdal/reading-is-good/blob/master/testCoverage.JPG)
 
 
 ## Technologies
